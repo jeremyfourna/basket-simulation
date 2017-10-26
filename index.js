@@ -1,9 +1,8 @@
 const R = require('ramda');
 
-function generateGame(style, teamsSpeed) {
+function initGame(style, teamsSpeed) {
   function minutesInAGame(style) {
     function secondsInAPossession(remainingSec, nbPlays = 0, whoIsPlaying = 0) {
-      console.log(style, teamsSpeed, remainingSec, nbPlays, whoIsPlaying);
       const secToRemove = R.cond([
         [R.equals('fast'), R.always(12)],
         [R.equals('slow'), R.always(20)],
@@ -37,15 +36,73 @@ function generateGame(style, teamsSpeed) {
     return secondsInAPossession(secForStyle(style));
   }
 
+  const defaultConfig = R.assoc('remainingPossessions', R.__, {
+    history: [],
+    score: [0, 0]
+  });
+
   return R.cond([
-    [R.equals('nba'), style => {
-      return { remainingPossessions: minutesInAGame(style) };
-    }],
-    [R.equals('fiba'), style => {
-      return { remainingPossessions: minutesInAGame(style) };
-    }],
+    [R.equals('nba'), style => defaultConfig(minutesInAGame(style))],
+    [R.equals('fiba'), style => defaultConfig(minutesInAGame(style))],
     [R.T, temp => 'We only know nba or fiba as basket-ball style']
   ])(style);
 }
 
-console.log('generateGame()', generateGame('nba', ['normal', 'fast']));
+function willScore(shoot, playerCharact) {
+  function probabilityToScore(percentage) {
+    return (R.gte(Math.random(), R.add(percentage, scaleForScoreChance(playerCharact)))) ? true : false;
+  }
+
+  function scaleForScoreChance(playerCharact) {
+    return R.cond([
+      [R.flip(R.gte)(90), R.always(-0.15)],
+      [R.flip(R.gte)(80), R.always(-0.10)],
+      [R.flip(R.gte)(70), R.always(-0.05)],
+      [R.flip(R.gte)(60), R.always(0)],
+      [R.flip(R.gte)(50), R.always(0.1)],
+      [R.flip(R.gte)(40), R.always(0.2)],
+      [R.flip(R.gte)(30), R.always(0.3)],
+      [R.flip(R.gte)(20), R.always(0.4)],
+      [R.flip(R.gte)(10), R.always(0.5)],
+      [R.T, R.always(0.7)]
+    ])(playerCharact);
+  }
+  // On average players will have an accuracy between 80%
+  // and 90% at the Free Thrown exercice
+  // so 1 - 0.8 = 0.2
+  // On average players will have an accuracy between 40%
+  // and 50% at the 2pts exercice
+  // so 1 - 0.4 = 0.6
+  // On average players will have an accuracy between 30%
+  // and 40% at the 3pts exercice
+  // so 1 - 0.3 = 0.7
+  return R.cond([
+    [R.equals(1), () => probabilityToScore(0.2)],
+    [R.equals(2), () => probabilityToScore(0.6)],
+    [R.equals(3), () => probabilityToScore(0.7)]
+  ])(shoot);
+}
+
+
+const game = initGame('nba', ['normal', 'fast']);
+
+function typeOfShoot() {
+  // On average their are 110 shoots per game
+  // 20 are FT -> 20 / 110 = 18,18%
+  // 30 are 3pts -> 30 / 110 = 27,27%
+  // 60 are 2pts -> 60 / 110 = 54,54%
+  const probaFT = R.divide(20, 110);
+  const proba3pts = R.divide(30, 110);
+  const proba2pts = R.divide(60, 110);
+  return R.cond([
+    [R.flip(R.gte)(proba2pts), R.always(2)],
+    [R.flip(R.gte)(proba3pts), R.always(3)],
+    [R.T, R.always(1)]
+  ])(Math.random());
+}
+
+function generateGame(config) {
+  console.log(config);
+}
+
+console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'])));
