@@ -50,7 +50,7 @@ function initGame(style, teamsSpeed) {
   return R.cond([
     [R.equals('nba'), style => defaultConfig(minutesInAGame(style, teamsSpeed))],
     [R.equals('fiba'), style => defaultConfig(minutesInAGame(style, teamsSpeed))],
-    [R.T, temp => 'We only know nba or fiba as basket-ball style']
+    [R.T, style => `We only know nba or fiba as basket-ball style, ${style} is unknown`]
   ])(style);
 }
 
@@ -100,7 +100,7 @@ function typeOfShoot() {
   return R.cond([
     [R.flip(R.gte)(proba2pts), R.always(2)],
     [R.flip(R.gte)(proba3pts), R.always(3)],
-    [R.T, R.always(1)]
+    [R.flip(R.lte)(probaFT), R.always(1)]
   ])(Math.random());
 }
 
@@ -138,4 +138,7 @@ function generateGame(config) {
   }
 }
 
-console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'])));
+//console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'])));
+
+exports.generateGame = generateGame;
+exports.initGame = initGame;
