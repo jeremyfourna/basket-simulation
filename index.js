@@ -1,5 +1,13 @@
 const R = require('ramda');
 
+function change(zeroOrOne) {
+  return R.ifElse(
+    R.equals(0),
+    R.always(1),
+    R.always(0)
+  )(zeroOrOne);
+}
+
 function initGame(style, teamsSpeed) {
   function minutesInAGame(style) {
     function secondsInAPossession(remainingSec, nbPlays = 0, whoIsPlaying = 0) {
@@ -9,12 +17,6 @@ function initGame(style, teamsSpeed) {
         [R.equals('normal'), R.always(15)],
         [R.T, R.always(24)]
       ]);
-
-      const change = R.ifElse(
-        R.equals(0),
-        R.always(1),
-        R.always(0)
-      );
 
       if (R.lte(remainingSec, 0)) {
         return nbPlays;
@@ -37,8 +39,11 @@ function initGame(style, teamsSpeed) {
   }
 
   const defaultConfig = R.assoc('remainingPossessions', R.__, {
+    style,
+    teamsSpeed,
     history: [],
-    score: [0, 0]
+    score: [0, 0],
+    teamWithBall: 0
   });
 
   return R.cond([
@@ -103,6 +108,29 @@ function typeOfShoot() {
 
 function generateGame(config) {
   console.log(config);
+  const shoot = typeOfShoot();
+  const shootResult = willScore(shoot, 100);
+
+  if (R.equals(R.prop('remainingPossessions', config), 0)) {
+    return config;
+  } else if (R.equals(shootResult, true)) {
+    const transformations = {
+      remainingPossessions: R.dec,
+      score: R.adjust(R.add(shoot), R.prop('teamWithBall', config)),
+      teamWithBall: change
+    };
+    const newConfig = R.evolve(transformations, config);
+
+    return generateGame(newConfig);
+  } else {
+    const transformations = {
+      remainingPossessions: R.dec,
+      teamWithBall: change
+    };
+    const newConfig = R.evolve(transformations, config);
+
+    return generateGame(newConfig);
+  }
 }
 
 console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'])));
