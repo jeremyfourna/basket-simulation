@@ -28,20 +28,24 @@ function generateGame(style, teamsSpeed) {
       }
     }
 
-    const minForStyle = R.ifElse(
+    const secForStyle = R.ifElse(
       R.equals('nba'),
-      R.always(48),
-      R.always(40)
+      R.always(R.multiply(48, 60)),
+      R.always(R.multiply(48, 60))
     );
 
-    return secondsInAPossession(minForStyle(style));
+    return secondsInAPossession(secForStyle(style));
   }
 
   return R.cond([
-    [R.equals('nba'), R.always({ remainingPossessions: minutesInAGame(R.__) })],
-    [R.equals('fiba'), R.always({ remainingPossessions: minutesInAGame(R.__) })],
+    [R.equals('nba'), style => {
+      return { remainingPossessions: minutesInAGame(style) };
+    }],
+    [R.equals('fiba'), style => {
+      return { remainingPossessions: minutesInAGame(style) };
+    }],
     [R.T, temp => 'We only know nba or fiba as basket-ball style']
   ])(style);
 }
 
-console.log(generateGame('nba', ['normal', 'fast']));
+console.log('generateGame()', generateGame('nba', ['normal', 'fast']));
