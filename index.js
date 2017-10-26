@@ -8,35 +8,36 @@ function change(zeroOrOne) {
   )(zeroOrOne);
 }
 
-function initGame(style, teamsSpeed) {
-  function minutesInAGame(style) {
-    function secondsInAPossession(remainingSec, nbPlays = 0, whoIsPlaying = 0) {
-      const secToRemove = R.cond([
-        [R.equals('fast'), R.always(12)],
-        [R.equals('slow'), R.always(20)],
-        [R.equals('normal'), R.always(15)],
-        [R.T, R.always(24)]
-      ]);
+function minutesInAGame(style, teamsSpeed) {
+  function secondsInAPossession(remainingSec, nbPlays = 0, whoIsPlaying = 0) {
+    const secToRemove = R.cond([
+      [R.equals('fast'), R.always(12)],
+      [R.equals('slow'), R.always(20)],
+      [R.equals('normal'), R.always(15)],
+      [R.T, R.always(24)]
+    ]);
 
-      if (R.lte(remainingSec, 0)) {
-        return nbPlays;
-      } else {
-        return secondsInAPossession(
-          R.subtract(remainingSec, secToRemove(R.nth(whoIsPlaying, teamsSpeed))),
-          R.inc(nbPlays),
-          change(whoIsPlaying)
-        );
-      }
+    if (R.lte(remainingSec, 0)) {
+      return nbPlays;
+    } else {
+      return secondsInAPossession(
+        R.subtract(remainingSec, secToRemove(R.nth(whoIsPlaying, teamsSpeed))),
+        R.inc(nbPlays),
+        change(whoIsPlaying)
+      );
     }
-
-    const secForStyle = R.ifElse(
-      R.equals('nba'),
-      R.always(R.multiply(48, 60)),
-      R.always(R.multiply(48, 60))
-    );
-
-    return secondsInAPossession(secForStyle(style));
   }
+
+  const secForStyle = R.cond([
+    [R.equals('nba'), R.always(R.multiply(48, 60))],
+    [R.equals('fiba'), R.always(R.multiply(40, 60))],
+    [R.equals('overtime'), R.always(R.multiply(5, 60))]
+  ]);
+
+  return secondsInAPossession(secForStyle(style));
+}
+
+function initGame(style, teamsSpeed) {
 
   const defaultConfig = R.assoc('remainingPossessions', R.__, {
     style,
@@ -47,8 +48,8 @@ function initGame(style, teamsSpeed) {
   });
 
   return R.cond([
-    [R.equals('nba'), style => defaultConfig(minutesInAGame(style))],
-    [R.equals('fiba'), style => defaultConfig(minutesInAGame(style))],
+    [R.equals('nba'), style => defaultConfig(minutesInAGame(style, teamsSpeed))],
+    [R.equals('fiba'), style => defaultConfig(minutesInAGame(style, teamsSpeed))],
     [R.T, temp => 'We only know nba or fiba as basket-ball style']
   ])(style);
 }
@@ -88,9 +89,6 @@ function willScore(shoot, playerCharact) {
   ])(shoot);
 }
 
-
-const game = initGame('nba', ['normal', 'fast']);
-
 function typeOfShoot() {
   // On average their are 110 shoots per game
   // 20 are FT -> 20 / 110 = 18,18%
@@ -107,12 +105,19 @@ function typeOfShoot() {
 }
 
 function generateGame(config) {
-  console.log(config);
+  //console.log(config);
   const shoot = typeOfShoot();
   const shootResult = willScore(shoot, 100);
 
   if (R.equals(R.prop('remainingPossessions', config), 0)) {
-    return config;
+    if (R.equals(R.head(R.prop('score', config)), R.last(R.prop('score', config)))) {
+      const newConfig = R.assoc('remainingPossessions', minutesInAGame('overtime', R.prop('teamsSpeed', config)), config);
+      const newConfig1 = R.assoc('overtime', true, newConfig);
+      return generateGame(newConfig1);
+    } else {
+
+      return config;
+    }
   } else if (R.equals(shootResult, true)) {
     const transformations = {
       remainingPossessions: R.dec,
