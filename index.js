@@ -37,15 +37,16 @@ function minutesInAGame(style, teamsSpeed) {
   return secondsInAPossession(secForStyle(style));
 }
 
-function initGame(style, teamsSpeed) {
+function initGame(style, teamsSpeed, players) {
 
   const defaultConfig = R.assoc('remainingPossessions', R.__, {
     style,
     teamsSpeed,
+    players,
     history: [],
     score: [0, 0],
     teamWithBall: 0,
-    possessionsPlayed: 0
+    possessionsPlayed: 0,
   });
 
   return R.cond([
@@ -105,10 +106,24 @@ function typeOfShoot() {
   ])(Math.random());
 }
 
+function whoWillShoot(team) {
+  const player = Math.floor(Math.random() * 10);
+  return R.nth(player, team);
+}
+
+function charactForShoot(shoot) {
+  return R.cond([
+    [R.equals(1), R.always('ft')],
+    [R.equals(2), R.always('twoPts')],
+    [R.equals(3), R.always('threePts')]
+  ])(shoot);
+}
+
 function generateGame(config) {
   //console.log(config);
   const shoot = typeOfShoot();
-  const shootResult = willScore(shoot, 100);
+  const player = whoWillShoot(R.nth(R.prop('teamWithBall', config), R.prop('players', config)));
+  const shootResult = willScore(shoot, R.path(['charact', charactForShoot(shoot)], player));
 
   if (R.equals(R.prop('remainingPossessions', config), 0)) {
     if (R.equals(R.head(R.prop('score', config)), R.last(R.prop('score', config)))) {
@@ -124,7 +139,8 @@ function generateGame(config) {
       remainingPossessions: R.dec,
       score: R.adjust(R.add(shoot), R.prop('teamWithBall', config)),
       teamWithBall: change,
-      possessionsPlayed: R.inc
+      possessionsPlayed: R.inc,
+      history: R.append([R.prop('id', player), shoot])
     };
     const newConfig = R.evolve(transformations, config);
 
@@ -141,7 +157,29 @@ function generateGame(config) {
   }
 }
 
-console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'])));
+function initPlayers() {
+  function generateId() {
+    return Math.round(Math.random() * 1000000000);
+  }
+
+  function generateTeam(num) {
+    return R.map(cur => {
+      return {
+        id: generateId(),
+        name: 'Mickael Jordan',
+        charact: {
+          ft: 100,
+          twoPts: 100,
+          threePts: 100
+        }
+      };
+    }, R.range(0, num));
+  }
+
+  return [generateTeam(10), generateTeam(10)];
+}
+
+console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'], initPlayers())));
 
 exports.generateGame = generateGame;
 exports.initGame = initGame;
