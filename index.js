@@ -168,9 +168,9 @@ function initPlayers() {
         id: generateId(),
         name: 'Mickael Jordan',
         charact: {
-          ft: 100,
-          twoPts: 100,
-          threePts: 100
+          ft: Math.floor(Math.random() * (100 - 70) + 70),
+          twoPts: Math.floor(Math.random() * (100 - 50) + 50),
+          threePts: Math.floor(Math.random() * (100 - 40) + 40)
         }
       };
     }, R.range(0, num));
@@ -179,7 +179,7 @@ function initPlayers() {
   return [generateTeam(10), generateTeam(10)];
 }
 
-console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'], initPlayers())));
+console.log('generateGame()', generateGame(initGame('fiba', ['normal', 'normal'], initPlayers())));
 
 exports.generateGame = generateGame;
 exports.initGame = initGame;
