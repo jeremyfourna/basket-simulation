@@ -44,7 +44,8 @@ function initGame(style, teamsSpeed) {
     teamsSpeed,
     history: [],
     score: [0, 0],
-    teamWithBall: 0
+    teamWithBall: 0,
+    possessionsPlayed: 0
   });
 
   return R.cond([
@@ -122,7 +123,8 @@ function generateGame(config) {
     const transformations = {
       remainingPossessions: R.dec,
       score: R.adjust(R.add(shoot), R.prop('teamWithBall', config)),
-      teamWithBall: change
+      teamWithBall: change,
+      possessionsPlayed: R.inc
     };
     const newConfig = R.evolve(transformations, config);
 
@@ -130,7 +132,8 @@ function generateGame(config) {
   } else {
     const transformations = {
       remainingPossessions: R.dec,
-      teamWithBall: change
+      teamWithBall: change,
+      possessionsPlayed: R.inc
     };
     const newConfig = R.evolve(transformations, config);
 
@@ -138,7 +141,7 @@ function generateGame(config) {
   }
 }
 
-//console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'])));
+console.log('generateGame()', generateGame(initGame('nba', ['normal', 'normal'])));
 
 exports.generateGame = generateGame;
 exports.initGame = initGame;
