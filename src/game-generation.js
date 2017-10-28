@@ -1,4 +1,5 @@
 const R = require('ramda');
+const { charactForShoot } = require('./src/utils');
 
 function change(zeroOrOne) {
   return R.ifElse(
@@ -96,13 +97,13 @@ function typeOfShoot() {
   // 20 are FT -> 20 / 110 = 18,18%
   // 30 are 3pts -> 30 / 110 = 27,27%
   // 60 are 2pts -> 60 / 110 = 54,54%
-  const probaFT = R.divide(20, 110);
+  //const probaFT = R.divide(20, 110);
   const proba3pts = R.divide(30, 110);
   const proba2pts = R.divide(60, 110);
   return R.cond([
     [R.flip(R.gte)(proba2pts), R.always(2)],
     [R.flip(R.gte)(proba3pts), R.always(3)],
-    [R.flip(R.lte)(probaFT), R.always(1)]
+    [R.flip(R.lt)(proba3pts), R.always(1)]
   ])(Math.random());
 }
 
@@ -111,49 +112,58 @@ function whoWillShoot(team) {
   return R.nth(player, team);
 }
 
-function charactForShoot(shoot) {
-  return R.cond([
-    [R.equals(1), R.always('ft')],
-    [R.equals(2), R.always('twoPts')],
-    [R.equals(3), R.always('threePts')]
-  ])(shoot);
-}
-
 function generateGame(config) {
+  function needOvertime(config) {
+    return R.equals(
+      R.head(R.prop('score', config)),
+      R.last(R.prop('score', config))
+    );
+  }
+
+  function configForOvertime(config) {
+    const transformations = {
+      remainingPossessions: R.add(minutesInAGame('overtime', R.prop('teamsSpeed', config))),
+      overtime: R.T
+    };
+
+    return R.evolve(transformations, config);
+  }
+
   //console.log(config);
   const shoot = typeOfShoot();
   const player = whoWillShoot(R.nth(R.prop('teamWithBall', config), R.prop('players', config)));
-  const shootResult = willScore(shoot, R.path(['charact', charactForShoot(shoot)], player));
+  const shootMade = willScore(shoot, R.path(['charact', charactForShoot(shoot)], player));
 
   if (R.equals(R.prop('remainingPossessions', config), 0)) {
-    if (R.equals(R.head(R.prop('score', config)), R.last(R.prop('score', config)))) {
-      const newConfig = R.assoc('remainingPossessions', minutesInAGame('overtime', R.prop('teamsSpeed', config)), config);
-      const newConfig1 = R.assoc('overtime', true, newConfig);
-      return generateGame(newConfig1);
-    } else {
 
-      return config;
-    }
-  } else if (R.equals(shootResult, true)) {
+    return (needOvertime(config)) ? generateGame(configForOvertime(config)) : config;
+  } else if (R.equals(shootMade, true)) {
     const transformations = {
       remainingPossessions: R.dec,
       score: R.adjust(R.add(shoot), R.prop('teamWithBall', config)),
       teamWithBall: change,
       possessionsPlayed: R.inc,
-      history: R.append([R.prop('id', player), shoot])
+      history: R.append({
+        action: 'shootMade',
+        id: R.prop('id', player),
+        result: shoot
+      })
     };
-    const newConfig = R.evolve(transformations, config);
 
-    return generateGame(newConfig);
+    return generateGame(R.evolve(transformations, config));
   } else {
     const transformations = {
       remainingPossessions: R.dec,
       teamWithBall: change,
-      possessionsPlayed: R.inc
+      possessionsPlayed: R.inc,
+      history: R.append({
+        action: 'shootMissed',
+        id: R.prop('id', player),
+        result: shoot
+      })
     };
-    const newConfig = R.evolve(transformations, config);
 
-    return generateGame(newConfig);
+    return generateGame(R.evolve(transformations, config));
   }
 }
 
@@ -170,14 +180,18 @@ function initPlayers() {
     }
 
     return R.map(() => ({
-        id: generateId(),
-        name: 'Mickael Jordan',
-        charact: {
-          ft: charact(50),
-          twoPts: charact(30),
-          threePts: charact(20)
-        }
-      }), R.range(0, num));
+      id: generateId(),
+      name: 'Mickael Jordan',
+      charact: {
+        ft: charact(50),
+        twoPts: charact(30),
+        threePts: charact(20)
+      },
+      ft: [0, 0],
+      twoPts: [0, 0],
+      threePts: [0, 0],
+      pts: 0
+    }), R.range(0, num));
   }
 
   return [generateTeam(10), generateTeam(10)];
