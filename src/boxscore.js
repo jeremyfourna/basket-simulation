@@ -1,5 +1,5 @@
 const R = require('ramda');
-const { charactForShoot } = require('./src/utils');
+const {charactForShoot} = require('./src/utils');
 
 function boxscore(game) {
   function buildBoxscore(history, team1, team2) {
@@ -10,13 +10,13 @@ function boxscore(game) {
     function newTeam(action, team) {
       function getTransformations(action) {
         return R.cond([
-          [R.equals('shootMade'), play => ({
+          [
+R.equals('shootMade'), () => ({
             [charactForShoot(R.prop('result', action))]: R.map(R.inc),
             pts: R.add(R.prop('result', action))
-          })],
-          [R.equals('shootMissed'), play => ({
-            [charactForShoot(R.prop('result', action))]: R.adjust(R.inc, 1)
-          })]
+          })
+],
+          [R.equals('shootMissed'), () => ({[charactForShoot(R.prop('result', action))]: R.adjust(R.inc, 1)})]
         ])(R.prop('action', action));
       }
       return R.adjust(

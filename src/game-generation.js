@@ -1,5 +1,5 @@
 const R = require('ramda');
-const { charactForShoot } = require('./src/utils');
+const {charactForShoot} = require('./src/utils');
 
 function change(zeroOrOne) {
   return R.ifElse(

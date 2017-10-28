@@ -1,5 +1,5 @@
-const { generateGame, initGame, initPlayers } = require('./src/game-generation');
-const { boxscore } = require('./src/boxscore');
+const {generateGame, initGame, initPlayers} = require('./src/game-generation');
+const {boxscore} = require('./src/boxscore');
 
 //const gameConfig = ['fiba', ['normal', 'normal']];
 
