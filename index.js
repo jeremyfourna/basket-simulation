@@ -1,5 +1,5 @@
 const R = require('ramda');
-const { generateGame, initGame, initPlayers } = require('./src/game-generation');
+const {generateGame, initGame, initPlayers} = require('./src/game-generation');
 
 const gameConfig = ['fiba', ['normal', 'normal']];
 
@@ -12,7 +12,7 @@ function boxscore(game) {
     }
 
     function newTeam(shoot, team) {
-      return R.adjust(player => R.assoc('pts', R.add(R.last(shoot), R.prop('pts', player) ||  0), player), index(shoot, team), team);
+      return R.adjust(player => R.assoc('pts', R.add(R.last(shoot), R.prop('pts', player) || 0), player), index(shoot, team), team);
     }
 
     if (R.equals(R.length(history), 0)) {

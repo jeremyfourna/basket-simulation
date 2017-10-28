@@ -46,7 +46,7 @@ function initGame(style, teamsSpeed, players) {
     history: [],
     score: [0, 0],
     teamWithBall: 0,
-    possessionsPlayed: 0,
+    possessionsPlayed: 0
   });
 
   return R.cond([
@@ -165,17 +165,19 @@ function initPlayers() {
   }
 
   function generateTeam(num) {
-    return R.map(cur => {
-      return {
+    function charact(min) {
+      return Math.floor(R.add(R.multiply(Math.random(), R.subtract(100, min)), min));
+    }
+
+    return R.map(() => ({
         id: generateId(),
         name: 'Mickael Jordan',
         charact: {
-          ft: Math.floor(Math.random() * (100 - 50) + 50),
-          twoPts: Math.floor(Math.random() * (100 - 30) + 30),
-          threePts: Math.floor(Math.random() * (100 - 20) + 20)
+          ft: charact(50),
+          twoPts: charact(30),
+          threePts: charact(20)
         }
-      };
-    }, R.range(0, num));
+      }), R.range(0, num));
   }
 
   return [generateTeam(10), generateTeam(10)];
