@@ -1,5 +1,5 @@
 const R = require('ramda');
-const {charactForShoot} = require('./src/utils');
+const {charactForShoot} = require('./utils');
 
 function boxscore(game) {
   function buildBoxscore(history, team1, team2) {
