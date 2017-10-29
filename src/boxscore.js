@@ -9,17 +9,19 @@ function boxscore(game) {
 
     function newTeam(action, team) {
       function getTransformations(action) {
+        const prop = R.prop(R.__, action);
+
         return R.cond([
           [R.equals('shootMade'), () => ({
-            [charactForShoot(R.prop('result', action))]: R.map(R.inc),
-            pts: R.add(R.prop('result', action)),
-            eval: R.inc
+            [charactForShoot(prop('result'))]: R.map(R.inc),
+            pts: R.add(prop('result')),
+            eval: R.add(prop('result'))
           })],
           [R.equals('shootMissed'), () => ({
-            [charactForShoot(R.prop('result', action))]: R.adjust(R.inc, 1),
+            [charactForShoot(prop('result'))]: R.adjust(R.inc, 1),
             eval: R.dec
           })]
-        ])(R.prop('action', action));
+        ])(prop('action'));
       }
       return R.adjust(
         player => R.evolve(getTransformations(action), player),
