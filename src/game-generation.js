@@ -191,7 +191,8 @@ function initPlayers() {
       ft: [0, 0],
       twoPts: [0, 0],
       threePts: [0, 0],
-      pts: 0
+      pts: 0,
+      eval: 0
     }), R.range(0, num));
   }
 
