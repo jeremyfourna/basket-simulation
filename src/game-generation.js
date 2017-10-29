@@ -1,5 +1,5 @@
 const R = require('ramda');
-const {charactForShoot} = require('./utils');
+const { charactForShoot } = require('./utils');
 
 function change(zeroOrOne) {
   return R.ifElse(
@@ -38,11 +38,12 @@ function minutesInAGame(style, teamsSpeed) {
   return secondsInAPossession(secForStyle(style));
 }
 
-function initGame(style, teamsSpeed, players) {
+function initGame(style, teamsSpeed, teamsName, players) {
 
   const defaultConfig = R.assoc('remainingPossessions', R.__, {
     style,
     teamsSpeed,
+    teamsName,
     players,
     history: [],
     score: [0, 0],
