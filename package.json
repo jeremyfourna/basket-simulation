@@ -1,19 +1,37 @@
 {
   "name": "basket-simulation",
-  "version": "0.0.7",
-  "description": "",
+  "version": "0.0.8",
+  "description": "Core functions to generation a game and its boxscore",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nyc mocha",
     "start": "node index.js",
     "clean": "eslint index.js src/ --fix"
   },
-  "author": "",
+  "keywords": [
+    "basket",
+    "basket-ball",
+    "core",
+    "game"
+  ],
+  "bugs": {
+    "url": "https://github.com/jeremyfourna/basket-simulation/issues",
+    "email": "jeremyfourna@gmail.com"
+  },
+  "author": "Jeremy Fourna <jeremyfourna@gmail.com>",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeremyfourna/basket-simulation.git"
+  },
   "dependencies": {
     "ramda": "^0.25.0"
   },
   "devDependencies": {
-    "eslint": "^4.9.0"
+    "chai": "^4.1.2",
+    "chai-json-schema": "^1.5.0",
+    "eslint": "^4.9.0",
+    "mocha": "^4.0.1",
+    "nyc": "^11.2.1"
   }
 }
