@@ -102,9 +102,9 @@ function typeOfShoot() {
   const proba3pts = R.divide(30, 110);
   const proba2pts = R.divide(60, 110);
   return R.cond([
-    [R.flip(R.gte)(proba2pts), R.always(2)],
-    [R.flip(R.gte)(proba3pts), R.always(3)],
-    [R.flip(R.lt)(proba3pts), R.always(1)]
+    [R.flip(R.lte)(proba2pts), R.always(2)],
+    [R.flip(R.lte)(R.add(proba2pts, proba3pts)), R.always(3)],
+    [R.flip(R.gt)(R.add(proba2pts, proba3pts)), R.always(1)]
   ])(Math.random());
 }
 
