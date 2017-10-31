@@ -188,11 +188,13 @@ function initPlayers() {
         twoPts: charact(30),
         threePts: charact(20)
       },
-      ft: [0, 0],
-      twoPts: [0, 0],
-      threePts: [0, 0],
-      pts: 0,
-      eval: 0
+      stats: {
+        ft: [0, 0],
+        twoPts: [0, 0],
+        threePts: [0, 0],
+        pts: 0,
+        eval: 0
+      }
     }), R.range(0, num));
   }
 

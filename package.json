@@ -1,6 +1,6 @@
 {
   "name": "basket-simulation",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Core functions to generation a game and its boxscore",
   "main": "index.js",
   "scripts": {
