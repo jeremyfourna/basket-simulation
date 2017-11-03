@@ -23,26 +23,27 @@ function boxscore(game) {
           })]
         ])(prop('action'));
       }
+      const statsLens = R.lensProp('stats');
       return R.adjust(
-        player => R.evolve(getTransformations(action), player),
+        player => R.over(statsLens, R.evolve(getTransformations(action)), player),
         index(action, team),
         team
       );
     }
 
-    if (R.equals(R.length(history), 0)) {
+    if (R.equals(R.length(history), 0)) { // We finished processing the game
 
       return [team1, team2];
-    } else {
-      const shoot = R.head(history);
-      const shootIsInTeam1 = R.contains(R.prop('id', shoot), R.map(cur => R.prop('id', cur), team1));
+    } else { // We still have some event to process
+      const event = R.head(history); // We take the first in the history array
+      const eventIsInTeam1 = R.contains(R.prop('id', event), R.map(cur => R.prop('id', cur), team1));
 
-      if (R.equals(shootIsInTeam1, true)) {
+      if (R.equals(eventIsInTeam1, true)) {
 
-        return buildBoxscore(R.tail(history), newTeam(shoot, team1), team2);
+        return buildBoxscore(R.tail(history), newTeam(event, team1), team2);
       } else {
 
-        return buildBoxscore(R.tail(history), team1, newTeam(shoot, team2));
+        return buildBoxscore(R.tail(history), team1, newTeam(event, team2));
       }
     }
   }
