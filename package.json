@@ -6,7 +6,7 @@
   "scripts": {
     "test": "nyc mocha",
     "start": "node index.js",
-    "clean": "eslint index.js src/ --fix"
+    "clean": "eslint index.js src/"
   },
   "keywords": [
     "basket",

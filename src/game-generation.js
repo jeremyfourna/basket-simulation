@@ -48,7 +48,8 @@ function initGame(style, teamsSpeed, teamsName, players) {
     history: [],
     score: [0, 0],
     teamWithBall: 0,
-    possessionsPlayed: 0
+    possessionsPlayed: 0,
+    overtime: false
   });
 
   return R.cond([
@@ -130,7 +131,6 @@ function generateGame(config) {
     return R.evolve(transformations, config);
   }
 
-  //console.log(config);
   const shoot = typeOfShoot();
   const player = whoWillShoot(R.nth(R.prop('teamWithBall', config), R.prop('players', config)));
   const shootMade = willScore(shoot, R.path(['charact', charactForShoot(shoot)], player));
