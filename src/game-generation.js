@@ -38,27 +38,6 @@ function minutesInAGame(style, teamsSpeed) {
   return secondsInAPossession(secForStyle(style));
 }
 
-function initGame(style, teamsSpeed, teamsName, players) {
-
-  const defaultConfig = R.assoc('remainingPossessions', R.__, {
-    style,
-    teamsSpeed,
-    teamsName,
-    players,
-    history: [],
-    score: [0, 0],
-    teamWithBall: 0,
-    possessionsPlayed: 0,
-    overtime: false
-  });
-
-  return R.cond([
-    [R.equals('nba'), style => defaultConfig(minutesInAGame(style, teamsSpeed))],
-    [R.equals('fiba'), style => defaultConfig(minutesInAGame(style, teamsSpeed))],
-    [R.T, style => `We only know nba or fiba as basket-ball style, ${style} is unknown`]
-  ])(style);
-}
-
 function willScore(shoot, playerCharact) {
   function probabilityToScore(percentage) {
     return (R.gte(Math.random(), R.add(percentage, scaleForScoreChance(playerCharact)))) ? true : false;
@@ -114,22 +93,32 @@ function whoWillShoot(team) {
   return R.nth(player, team);
 }
 
-function generateGame(config) {
-  function needOvertime(config) {
+function generateGame(style, team1, team2) {
+  function needOvertime(history) {
     return R.equals(
-      R.head(R.prop('score', config)),
-      R.last(R.prop('score', config))
+      R.head(R.prop('score', history)),
+      R.last(R.prop('score', history))
     );
   }
 
-  function configForOvertime(config) {
+  function configForOvertime(history) {
     const transformations = {
-      remainingPossessions: R.add(minutesInAGame('overtime', R.prop('teamsSpeed', config))),
+      remainingPossessions: R.add(minutesInAGame('overtime', teamsSpeed)),
       overtime: R.T
     };
 
-    return R.evolve(transformations, config);
+    return R.evolve(transformations, history);
   }
+
+  const teamsSpeed = [R.prop('speed', team1), R.prop('speed', team2)];
+  const history = {
+    history: [],
+    score: [0, 0],
+    teamWithBall: 0,
+    possessionsPlayed: 0,
+    overtime: false,
+    remainingPossessions: minutesInAGame(style, teamsSpeed)
+  };
 
   const shoot = typeOfShoot();
   const player = whoWillShoot(R.nth(R.prop('teamWithBall', config), R.prop('players', config)));
@@ -168,37 +157,20 @@ function generateGame(config) {
   }
 }
 
-function initPlayers() {
-  function generateId() {
-    const id1 = Math.round(Math.random() * 1000000000);
-    const id2 = Math.round(Math.random() * 1000000000);
-    return Number(R.join('', [id1, id2]));
-  }
-
-  function generateTeam(num) {
-    function charact(min) {
-      return Math.floor(R.add(R.multiply(Math.random(), R.subtract(100, min)), min));
-    }
-
-    return R.map(() => ({
-      id: generateId(),
-      name: 'Mickael Jordan',
-      charact: {
-        ft: charact(50),
-        twoPts: charact(30),
-        threePts: charact(20)
-      },
-      stats: {
-        ft: [0, 0],
-        twoPts: [0, 0],
-        threePts: [0, 0],
-        pts: 0,
-        eval: 0
-      }
-    }), R.range(0, num));
-  }
-
-  return [generateTeam(10), generateTeam(10)];
+function preparePlayersForGame(teams) {
+  return R.map(cur => {
+    return R.map(el => {
+      return R.merge(el, {
+        stats: {
+          ft: [0, 0],
+          twoPts: [0, 0],
+          threePts: [0, 0],
+          pts: 0,
+          eval: 0
+        }
+      });
+    });
+  });
 }
 
 
