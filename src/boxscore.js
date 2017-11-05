@@ -1,8 +1,21 @@
 const R = require('ramda');
 const { charactForShoot } = require('./utils');
 
-function boxscore(game) {
-  function buildBoxscore(history, team1, team2) {
+function boxscore(team1, team2, history) {
+  function preparePlayersForGame(team) {
+    return R.map(el => R.merge(el, {
+      stats: {
+        ft: [0, 0],
+        twoPts: [0, 0],
+        threePts: [0, 0],
+        pts: 0,
+        eval: 0
+      }
+    }), team);
+  }
+
+  function buildBoxscore(team1, team2, history) {
+
     function index(action, team) {
       return R.findIndex(R.propEq('id', R.prop('id', action)), team);
     }
@@ -30,28 +43,27 @@ function boxscore(game) {
         team
       );
     }
-
-    if (R.equals(R.length(history), 0)) { // We finished processing the game
+    // We finished processing the game
+    if (R.equals(R.length(history), 0)) {
 
       return [team1, team2];
-    } else { // We still have some event to process
-      const event = R.head(history); // We take the first in the history array
+      // We still have some event to process
+    } else {
+      // We take the first in the history array
+      const event = R.head(history);
       const eventIsInTeam1 = R.contains(R.prop('id', event), R.map(cur => R.prop('id', cur), team1));
 
       if (R.equals(eventIsInTeam1, true)) {
 
-        return buildBoxscore(R.tail(history), newTeam(event, team1), team2);
+        return buildBoxscore(newTeam(event, team1), team2, R.tail(history));
       } else {
 
-        return buildBoxscore(R.tail(history), team1, newTeam(event, team2));
+        return buildBoxscore(team1, newTeam(event, team2), R.tail(history));
       }
     }
   }
 
-  const playersActions = R.prop('history', game);
-  const teams = R.prop('players', game);
-
-  return buildBoxscore(playersActions, ...teams);
+  return buildBoxscore(preparePlayersForGame(team1), preparePlayersForGame(team2), R.prop('history', history));
 }
 
 exports.boxscore = boxscore;
