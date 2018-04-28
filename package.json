@@ -1,12 +1,11 @@
 {
   "name": "basket-simulation-game",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Core functions to generation a game and its boxscore",
   "main": "index.js",
   "scripts": {
     "test": "nyc mocha",
-    "start": "node index.js",
-    "clean": "eslint index.js src/"
+    "start": "node index.js"
   },
   "keywords": [
     "basket",
@@ -28,9 +27,9 @@
     "ramda": "^0.25.0"
   },
   "devDependencies": {
+    "basket-simulation-player": "0.0.4",
     "chai": "^4.1.2",
     "chai-json-schema": "^1.5.0",
-    "eslint": "^4.9.0",
     "mocha": "^4.0.1",
     "nyc": "^11.2.1"
   }

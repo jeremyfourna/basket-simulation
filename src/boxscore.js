@@ -1,25 +1,74 @@
-const R = require('ramda');
+/* jshint esversion: 6 */
+
+const {
+  always,
+  assoc,
+  curry,
+  equals,
+  evolve,
+  findIndex,
+  head,
+  isEmpty,
+  isNil,
+  last,
+  length,
+  lensProp,
+  map,
+  memoizeWith,
+  merge,
+  over,
+  prop,
+  propEq,
+  tail,
+} = require('ramda');
 const { charactForShoot } = require('./utils');
 
-function boxscore(team1, team2, history) {
-  function preparePlayersForGame(team) {
-    return R.map(el => R.merge(el, {
-      stats: {
-        ft: [0, 0],
-        twoPts: [0, 0],
-        threePts: [0, 0],
-        pts: 0,
-        eval: 0
+// preparePlayersForGame :: [object] -> [object]
+function preparePlayersForGame(team) {
+  const defaultStats = {
+    stats: {
+      ft: [0, 0],
+      twoPts: [0, 0],
+      threePts: [0, 0],
+      pts: 0,
+      eval: 0
+    }
+  };
+  return over(
+    lensProp('players'),
+    map(el => merge(el, defaultStats)),
+    team
+  );
+}
+
+// boxscore :: (object, [object]) -> object
+function boxscore(gameConfig, history) {
+  // index :: [object, object] -> object -> [number]
+  function index(teams) {
+    const results = {};
+
+    return function(action) {
+      const playerId = prop('id', action);
+
+      if (isNil(prop(playerId, results))) {
+        const result = map(cur => {
+          return findIndex(propEq('id', playerId), prop('players', cur))
+        }, teams);
+        if (equals(head(result), -1)) {
+          results[playerId] = [1, last(result)];
+          return prop(playerId, results);
+        } else {
+          results[playerId] = [0, head(result)];
+          return prop(playerId, results);
+        }
+      } else {
+        return prop(playerId, results);
       }
-    }), team);
+    }
   }
 
-  function buildBoxscore(team1, team2, history) {
-
-    function index(action, team) {
-      return R.findIndex(R.propEq('id', R.prop('id', action)), team);
-    }
-
+  // buildBoxscore :: (object, [object]) -> object
+  function buildBoxscore(gameConfig, history) {
     function newTeam(action, team) {
       function getTransformations(action) {
         const prop = R.prop(R.__, action);
@@ -36,34 +85,35 @@ function boxscore(team1, team2, history) {
           })]
         ])(prop('action'));
       }
-      const statsLens = R.lensProp('stats');
+
       return R.adjust(
-        player => R.over(statsLens, R.evolve(getTransformations(action)), player),
+        player => R.over(lensProp('stats'), R.evolve(getTransformations(action)), player),
         index(action, team),
         team
       );
     }
-    // We finished processing the game
-    if (R.equals(R.length(history), 0)) {
 
-      return [team1, team2];
-      // We still have some event to process
+    // We finished processing the game
+    if (equals(length(history), 0)) {
+      return gameConfig;
     } else {
       // We take the first in the history array
-      const event = R.head(history);
-      const eventIsInTeam1 = R.contains(R.prop('id', event), R.map(cur => R.prop('id', cur), team1));
+      const action = head(history);
 
-      if (R.equals(eventIsInTeam1, true)) {
-
-        return buildBoxscore(newTeam(event, team1), team2, R.tail(history));
-      } else {
-
-        return buildBoxscore(team1, newTeam(event, team2), R.tail(history));
-      }
+      return buildBoxscore(gameConfig, tail(history));
     }
   }
 
-  return buildBoxscore(preparePlayersForGame(team1), preparePlayersForGame(team2), R.prop('history', history));
+  const indexPartial = index(prop('teams', gameConfig));
+
+  return buildBoxscore(
+    over(
+      lensProp('teams'),
+      map(preparePlayersForGame),
+      gameConfig
+    ),
+    history
+  );
 }
 
-exports.boxscore = boxscore;
+exports.boxscore = curry(boxscore);
