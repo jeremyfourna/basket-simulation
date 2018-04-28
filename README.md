@@ -51,3 +51,28 @@ The objects inside the `history` array look like this:
   result: 2 // type of shoot made by the player
 }
 ```
+
+### Build the boxscore for the game
+
+```js
+const { boxscore } = require('basket-simulation-game');
+
+const boxscoreForGame = boxscore(gameConfig, randomGame); // see constants defined above
+
+```
+
+The boxscore function primarly add to each player of the teams the following properties:
+
+```js
+{
+  stats: {
+    ft: [0, 0],
+    twoPts: [0, 0],
+    threePts: [0, 0],
+    pts: 0,
+    eval: 0
+  }
+}
+```
+
+Those properties will be updated with the player performance during the game.
