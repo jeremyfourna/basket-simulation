@@ -37,7 +37,9 @@ describe('boxscore.js', () => {
 
     it('boxscore() must return a valid boxscoreSchema', () => {
       const gameHistory = prop('history', generateGame(gameConfig));
-      assert.jsonSchema(boxscore(gameConfig, gameHistory), boxscoreSchema);
+      const boxscoreForGame = boxscore(gameConfig, gameHistory);
+
+      assert.jsonSchema(boxscoreForGame, boxscoreSchema);
     });
   });
 
